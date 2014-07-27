@@ -87,32 +87,26 @@ public class FileListFragment extends Fragment implements AdapterView.OnItemClic
                         int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
                         if(c.getInt(columnIndex) == DownloadManager.STATUS_SUCCESSFUL){
                             String localUri = c.getString(c.getColumnIndex(DownloadManager.COLUMN_LOCAL_FILENAME));
+                            String remoteUriString = c.getString(c.getColumnIndex(DownloadManager.COLUMN_URI));
 
                             File destinationFile = null;
 
                             try{
-                                destinationFile = writeToCache(new File(localUri));
+                                destinationFile = writeToCache(new File(localUri), Uri.parse(remoteUriString));
                             }catch (IOException e){
                                 Log.e(LOG_TAG, "Fail to cache file [" + localUri + "]");
                             }
 
                             if (destinationFile != null){
-                                String fileType = mimeType(destinationFile);
-                                Uri fileUri = FileProvider.getUriForFile(getActivity(), getActivity().getPackageName(), destinationFile);
-
-                                Intent viewIntent = new Intent();
-                                viewIntent.setAction(Intent.ACTION_VIEW);
-                                viewIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                                viewIntent.setDataAndType(fileUri, fileType);
-                                getActivity().startActivity(viewIntent);
+                                startViewer(destinationFile);
                             }
                         }
                     }
                 }
             }
 
-            File writeToCache(File sourceFile) throws IOException{
-                File destinationFile = new File(getActivity().getCacheDir(), sourceFile.getName());
+            File writeToCache(File sourceFile, Uri remoteUri) throws IOException{
+                File destinationFile = new File(getActivity().getCacheDir(), remoteUri.getLastPathSegment());
                 InputStream input = new FileInputStream(sourceFile);
                 OutputStream output = new FileOutputStream(destinationFile);
 
@@ -127,16 +121,28 @@ public class FileListFragment extends Fragment implements AdapterView.OnItemClic
                 return destinationFile;
             }
 
-            String mimeType(File file){
-                String filename = file.getName();
-                String extension = filename.substring(filename.lastIndexOf(".") + 1);
-                return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-            }
         };
 
         getActivity().registerReceiver(receiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
 
         return rootView;
+    }
+
+    private void startViewer(File documentName){
+        String fileType = mimeType(documentName);
+        Uri fileUri = FileProvider.getUriForFile(getActivity(), getActivity().getPackageName(), documentName);
+
+        Intent viewIntent = new Intent();
+        viewIntent.setAction(Intent.ACTION_VIEW);
+        viewIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        viewIntent.setDataAndType(fileUri, fileType);
+        getActivity().startActivity(viewIntent);
+    }
+
+    String mimeType(File file){
+        String filename = file.getName();
+        String extension = filename.substring(filename.lastIndexOf(".") + 1);
+        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
     }
 
     private void downloadDocumentList() {
@@ -150,10 +156,20 @@ public class FileListFragment extends Fragment implements AdapterView.OnItemClic
         ArrayAdapter<DocumentListItem> adapter = (ArrayAdapter<DocumentListItem>)adapterView.getAdapter();
         DocumentListItem item = adapter.getItem((int) l);
 
-        // downloading using download manager
-        dm = (DownloadManager)getActivity().getSystemService(Context.DOWNLOAD_SERVICE);
-        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(item.getUri()));
-        enqueue = dm.enqueue(request);
+        // get the filename and check whether we have a cached copy of it
+        Uri documentUri = Uri.parse(item.getUri());
+
+        File cachedDocumentUri = new File(getActivity().getCacheDir(), documentUri.getLastPathSegment());
+        if(cachedDocumentUri.exists()){
+            Log.d(LOG_TAG, "File [" + documentUri.getLastPathSegment() + "] exists. Using cached copy");
+            startViewer(cachedDocumentUri);
+        } else {
+            Log.d(LOG_TAG, "Downloading [" + documentUri.toString());
+            // downloading using download manager
+            dm = (DownloadManager) getActivity().getSystemService(Context.DOWNLOAD_SERVICE);
+            DownloadManager.Request request = new DownloadManager.Request(documentUri);
+            enqueue = dm.enqueue(request);
+        }
     }
 
     public class FetchDocumentList extends AsyncTask<String, Void, DocumentListItem[]> {
