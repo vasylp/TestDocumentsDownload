@@ -46,6 +46,7 @@ public class FileListFragment extends Fragment implements AdapterView.OnItemClic
 
     private long enqueue;
     private DownloadManager dm;
+    private BroadcastReceiver receiver;
 
     private String fileListJSONUri;
 
@@ -62,6 +63,12 @@ public class FileListFragment extends Fragment implements AdapterView.OnItemClic
     }
 
     @Override
+    public void onDestroyView() {
+        getActivity().unregisterReceiver(receiver);
+        super.onDestroyView();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_documents_list, container, false);
@@ -74,7 +81,7 @@ public class FileListFragment extends Fragment implements AdapterView.OnItemClic
 
         downloadDocumentList();
 
-        BroadcastReceiver receiver = new BroadcastReceiver() {
+        receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
