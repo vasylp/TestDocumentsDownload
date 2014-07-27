@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Document Download</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="file_list_uri">https://dl.dropboxusercontent.com/s/jfrymisadkhfbpj/filelist.json</string>
+
+</resources>
