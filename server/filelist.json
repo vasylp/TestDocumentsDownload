@@ -1,8 +1,16 @@
 {
     "list":[
         {
-            "name":"Word document",
+            "name":"Sample Word Document",
             "uri":"https://dl.dropboxusercontent.com/s/k4qngk1warx9whp/sample%20word%20document.doc"
+        },
+        {
+            "name":"Sample Excel Spreadsheet",
+            "uri":"https://dl.dropboxusercontent.com/s/u45hw69cfjmaiqq/Balance%20Sheet%20sample.xls"
+        },
+        {
+            "name":"Sample PowerPoint Presentation",
+            "uri":"https://dl.dropboxusercontent.com/s/ya5r33h73whvwm6/Presentations-Tips.ppt"
         }
     ]
 }
