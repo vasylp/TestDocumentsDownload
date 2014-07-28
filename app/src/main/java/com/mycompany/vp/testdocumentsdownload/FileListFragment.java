@@ -21,6 +21,7 @@ import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -169,10 +170,12 @@ public class FileListFragment extends Fragment implements AdapterView.OnItemClic
         File cachedDocumentUri = new File(getActivity().getCacheDir(), documentUri.getLastPathSegment());
         if(cachedDocumentUri.exists()){
             Log.d(LOG_TAG, "File [" + documentUri.getLastPathSegment() + "] exists. Using cached copy");
+            Toast.makeText(getActivity(), "Opening cached document", Toast.LENGTH_SHORT).show();
             startViewer(cachedDocumentUri);
         } else {
             Log.d(LOG_TAG, "Downloading [" + documentUri.toString());
             // downloading using download manager
+            Toast.makeText(getActivity(), "Downloading document", Toast.LENGTH_SHORT).show();
             dm = (DownloadManager) getActivity().getSystemService(Context.DOWNLOAD_SERVICE);
             DownloadManager.Request request = new DownloadManager.Request(documentUri);
             enqueue = dm.enqueue(request);

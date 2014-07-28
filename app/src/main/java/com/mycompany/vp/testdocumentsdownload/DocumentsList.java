@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.io.File;
+
 
 public class DocumentsList extends ActionBarActivity {
 
@@ -35,8 +37,17 @@ public class DocumentsList extends ActionBarActivity {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;
+        } else if (id == R.id.empty_cache) {
+            clearCache();
         }
         return super.onOptionsItemSelected(item);
     }
 
+    private void clearCache(){
+        for(File file : getCacheDir().listFiles()){
+            if(!file.delete()){
+                file.deleteOnExit();
+            }
+        }
+    }
 }
