@@ -1,0 +1,12 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <EditTextPreference
+        android:key="@string/key_documents_uri"
+        android:title="@string/documents_uri"
+        android:defaultValue="@string/file_list_uri"
+        android:selectAllOnFocus="true"
+        android:inputType="textUri"
+        android:singleLine="true"
+        android:maxLines="1" />
+
+</PreferenceScreen>

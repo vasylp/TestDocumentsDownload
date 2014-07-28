@@ -2,10 +2,12 @@
 <resources>
 
     <string name="app_name">Document Download</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
 
-    <string name="file_list_uri">https://dl.dropboxusercontent.com/s/jfrymisadkhfbpj/filelist.json</string>
+    <string name="file_list_uri" translatable="false">https://dl.dropboxusercontent.com/s/jfrymisadkhfbpj/filelist.json</string>
     <string name="empty_cache">Empty Cache</string>
+    <string name="documents_uri">Root URI</string>
+    <string name="key_documents_uri" translatable="false">key_documents_uri</string>
+    <string name="title_activity_settings">Settings</string>
 
 </resources>

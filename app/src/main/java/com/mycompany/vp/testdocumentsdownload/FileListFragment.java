@@ -5,10 +5,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.FileProvider;
@@ -49,8 +51,6 @@ public class FileListFragment extends Fragment implements AdapterView.OnItemClic
     private DownloadManager dm;
     private BroadcastReceiver receiver;
 
-    private String fileListJSONUri;
-
     private ArrayAdapter<DocumentListItem> fileListAdapter;
 
     public FileListFragment(){
@@ -60,7 +60,6 @@ public class FileListFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        fileListJSONUri = getString(R.string.file_list_uri);
     }
 
     @Override
@@ -154,8 +153,11 @@ public class FileListFragment extends Fragment implements AdapterView.OnItemClic
     }
 
     private void downloadDocumentList() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String rootUri = prefs.getString(getString(R.string.key_documents_uri),
+                getString(R.string.file_list_uri));
         FetchDocumentList task = new FetchDocumentList(fileListAdapter);
-        task.execute(fileListJSONUri);
+        task.execute(rootUri);
     }
 
     @Override
@@ -213,8 +215,24 @@ public class FileListFragment extends Fragment implements AdapterView.OnItemClic
             try{
                 URL url = new URL(uri);
                 urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setInstanceFollowRedirects(true);
                 urlConnection.setRequestMethod("GET");
                 urlConnection.connect();
+
+                if(urlConnection.getResponseCode() == HttpURLConnection.HTTP_MOVED_PERM){
+                    String newUrl = urlConnection.getHeaderField("Location");
+                    urlConnection.disconnect();
+                    urlConnection = (HttpURLConnection)new URL(newUrl).openConnection();
+                    urlConnection.setInstanceFollowRedirects(false);
+                    urlConnection.setRequestMethod("GET");
+                    urlConnection.connect();
+                }
+
+                if(urlConnection.getResponseCode() != HttpURLConnection.HTTP_OK){
+                    Log.e(LOG_TAG, "HTTP return: " + urlConnection.getResponseMessage());
+                    return null;
+                }
+
 
                 InputStream inputStream = urlConnection.getInputStream();
                 StringBuffer buffer = new StringBuffer();
@@ -260,6 +278,9 @@ public class FileListFragment extends Fragment implements AdapterView.OnItemClic
         @Override
         protected void onPostExecute(DocumentListItem[] strings) {
             documentsAdapter.clear();
+            if(strings == null){
+                return;
+            }
             for(DocumentListItem item:strings){
                 documentsAdapter.add(item);
             }
